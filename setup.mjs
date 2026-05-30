@@ -150,16 +150,18 @@ const startFrontend = (frontendDir) => {
 
 	log(`Запускаю фронтенд на http://localhost:${FRONTEND_PORT}...`)
 
-	const child = spawn(
-		npmCmd,
-		['exec', 'next', 'dev', '-p', String(FRONTEND_PORT)],
-		{
-			cwd: frontendDir,
-			stdio: 'inherit',
-			shell: isWin,
-			env: { ...process.env, PORT: String(FRONTEND_PORT) },
-		},
+	const nextBin = path.join(
+		frontendDir,
+		'node_modules',
+		'.bin',
+		isWin ? 'next.cmd' : 'next',
 	)
+
+	const child = spawn(nextBin, ['dev', '-p', String(FRONTEND_PORT)], {
+		cwd: frontendDir,
+		stdio: 'inherit',
+		shell: isWin,
+	})
 
 	child.on('exit', (code) => {
 		process.exit(code ?? 0)
