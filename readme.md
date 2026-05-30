@@ -6,6 +6,8 @@
 
 Git · Node.js · npm · Docker (Docker Desktop должен быть запущен)
 
+фронт + бек + этот гайд должны быть в одно папке (например job-journal)
+
 ## Запуск
 
 ```bash
