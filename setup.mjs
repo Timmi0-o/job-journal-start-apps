@@ -27,7 +27,13 @@ const REPOS = {
 const BACKEND_PORT = 7878
 const FRONTEND_PORT = 3166
 const BACKEND_WAIT_MS = 180_000
+const FRONTEND_WAIT_MS = 180_000
 const BACKEND_POLL_MS = 2_000
+
+const LOGIN = {
+	email: 'admin@job-journal.seed',
+	password: 'password',
+}
 
 const isWin = process.platform === 'win32'
 const npmCmd = isWin ? 'npm.cmd' : 'npm'
@@ -157,11 +163,15 @@ const startFrontend = (frontendDir) => {
 		isWin ? 'next.cmd' : 'next',
 	)
 
-	const child = spawn(nextBin, ['dev', '-p', String(FRONTEND_PORT)], {
-		cwd: frontendDir,
-		stdio: 'inherit',
-		shell: isWin,
-	})
+	const child = spawn(
+		nextBin,
+		['dev', '-p', String(FRONTEND_PORT), '--webpack'],
+		{
+			cwd: frontendDir,
+			stdio: 'inherit',
+			shell: isWin,
+		},
+	)
 
 	child.on('exit', (code) => {
 		process.exit(code ?? 0)
@@ -177,6 +187,16 @@ const stopBackend = (backendDir) => {
 		stdio: 'inherit',
 		shell: isWin,
 	})
+}
+
+const printLoginHint = () => {
+	console.log('\n─────────────────────────────────')
+	console.log('Вход в приложение:')
+	console.log(`  UI:       http://localhost:${FRONTEND_PORT}/login`)
+	console.log(`  Email:    ${LOGIN.email}`)
+	console.log(`  Password: ${LOGIN.password}`)
+	console.log('─────────────────────────────────')
+	console.log('\nCtrl+C — остановить фронт и бэкенд.\n')
 }
 
 const main = async () => {
@@ -207,6 +227,15 @@ const main = async () => {
 
 	const frontend = startFrontend(frontendDir)
 
+	try {
+		await waitForPort(FRONTEND_PORT, FRONTEND_WAIT_MS)
+	} catch (error) {
+		frontend.kill('SIGTERM')
+		fail(error instanceof Error ? error.message : String(error))
+	}
+
+	printLoginHint()
+
 	const shutdown = () => {
 		frontend.kill('SIGTERM')
 		stopBackend(backendDir)
@@ -215,8 +244,6 @@ const main = async () => {
 
 	process.on('SIGINT', shutdown)
 	process.on('SIGTERM', shutdown)
-
-	console.log('\nГотово. Ctrl+C — остановить фронт и бэкенд.\n')
 }
 
 main().catch((error) => {
