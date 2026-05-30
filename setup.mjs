@@ -154,24 +154,16 @@ const startFrontend = (frontendDir) => {
 	log('Устанавливаю зависимости фронтенда...')
 	run(npmCmd, ['install'], { cwd: frontendDir, shell: isWin })
 
+	log('Собираю фронтенд...')
+	run(npmCmd, ['run', 'build'], { cwd: frontendDir, shell: isWin })
+
 	log(`Запускаю фронтенд на http://localhost:${FRONTEND_PORT}...`)
 
-	const nextBin = path.join(
-		frontendDir,
-		'node_modules',
-		'.bin',
-		isWin ? 'next.cmd' : 'next',
-	)
-
-	const child = spawn(
-		nextBin,
-		['dev', '-p', String(FRONTEND_PORT), '--webpack'],
-		{
-			cwd: frontendDir,
-			stdio: 'inherit',
-			shell: isWin,
-		},
-	)
+	const child = spawn(npmCmd, ['run', 'start'], {
+		cwd: frontendDir,
+		stdio: 'inherit',
+		shell: isWin,
+	})
 
 	child.on('exit', (code) => {
 		process.exit(code ?? 0)
